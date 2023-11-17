@@ -4,12 +4,65 @@
 #include <algorithm>
 #include <climits>
 #include <string>
+#include <iomanip>
 
 using namespace std;
+
+
+
+
+
+void printMatrix(const vector<vector<int>>& matrix) {
+    for (size_t i = 1; i < matrix.size(); ++i) {
+        for (const int& element : matrix[i]) {
+            cout << setw(4) << element << " ";
+        }
+        cout << endl;
+    }
+}
+
 
 const int MaxN = 1000; // for Solve
 int Op[MaxN]; // for Solve
 vector<pair<int, int>> oper; // for Solve
+
+
+void printIncludedItems(const vector<vector<int>>& a, const vector<vector<int>>& w, int i, int j) {
+    if (i > 0 && j > 0) {
+        if (a[i][j] != a[i - 1][j]) {
+            printIncludedItems(a, w, i - 1, j - w[0][i]);
+            cout << "Вещь " << i << " включена в рюкзак." << endl;
+        }
+        else {
+            printIncludedItems(a, w, i - 1, j);
+        }
+    }
+}
+
+int bag(vector<vector<int>>& a, const vector<vector<int>>& w, int k, int w_max) {
+    for (int i = 1; i <= k; i++) {
+        for (int j = 1; j <= w_max; j++) {
+            if (w[0][i] <= j && w[1][i] + a[i - 1][j - w[0][i]] > a[i - 1][j]) {
+                a[i][j] = w[1][i] + a[i - 1][j - w[0][i]];
+            }
+            else {
+                a[i][j] = max(a[i - 1][j], a[i][j - 1]);
+            }
+        }
+    }
+    int maxUtility = a[k][w_max];
+    cout << "Максимально возможная суммарная полезность: " << maxUtility << "\n" << endl;
+
+    int i = k;
+    int j = w_max;
+    cout << "Включенные вещи в рюкзак:" << endl;
+    printIncludedItems(a, w, i, j);
+
+    cout << "Итоговая стоимость: " << maxUtility << endl;
+    cout << "Получившийся вес: " <<  << endl;
+
+    return 0;
+}
 
 int optimal_path_triangle(const vector<vector<int>>& a, int n) {
     vector<vector<int>> copy(n, vector<int>(n + 1, 0));
@@ -65,12 +118,13 @@ void Solve(int n) {
     for (int i = 2; i <= n; ++i) {
         Op[i] = Op[i - 1] + 1;
         oper.push_back({ i - 1, i });
-
+        cout << "/----------------------------------------------------------------------------/\n";
         for (int j = 2; j <= i - 1; ++j) {
             int current_op = Op[j] + Op[i - j] + 1;
             if (current_op < Op[i]) {
                 Op[i] = current_op;
                 oper.push_back({ j, i - j });
+                cout << "/------------------------------------------------------------/\n";
             }
 
             if (i % j == 0) {
@@ -78,6 +132,7 @@ void Solve(int n) {
                 if (current_op < Op[i]) {
                     Op[i] = current_op;
                     oper.push_back({ i / j, j - 1 });
+                    cout << "/-----------------------------------------------------------------/\n";
                 }
             }
         }
@@ -122,6 +177,7 @@ int main()
         }
         else if (m == 2) {
             cout << "Алгоритм Поиск оптимального пути в четырехугольнике(на минимум)\n";
+            
             cout << "/---------------------------------------------------------------/\n" << endl;
         }
         else if (m == 3) {
@@ -146,7 +202,45 @@ int main()
             cout << "/---------------------------------------------------------------/\n" << endl;
         }
         else if (m == 5) {
-            cout << "Алгоритм Решение задачи о рюкзаке\n";
+            cout << "Алгоритм: Решение задачи о рюкзаке\n";
+            int k;
+            int w_max;
+            cout << "Введите количество вещей в рюкзаке: ";
+            cin >> k;
+            cout << "Введите максимальный вес рюкзака: ";
+            cin >> w_max;
+            vector<vector<int>> a(k + 1, vector<int>(w_max + 1, 0));
+            // Определение размера вектора w
+            vector<vector<int>> w(2, vector<int>(k + 1, 0));
+
+            for (int i = 0; i < 2; i++) {
+                for (int j = 1; j <= k; j++) {
+                    cout << "Введите " << (i == 0 ? "вес" : "ценность") << " для вещи " << j << ": ";
+                    cin >> w[i][j];
+                }
+            }
+            cout << "\n";
+            cout << "Сформированный массив:" << endl;
+            for (int i = 0; i < 2; i++) {
+                for (int j = 1; j <= k; j++) {
+                    cout << w[i][j] << " ";
+                }
+                cout << endl;
+            }
+            cout << "\n";
+            for (int i = 0; i <= w_max; i++) {
+                a[0][i] = 0;
+                for (int j = 0; j <= k; j++) {
+                    a[j][0] = 0;
+                }
+            }
+
+            bag(a, w, k, w_max);
+
+
+            cout << "\nОптимальное заполнение рюкзака:" << endl;
+            printMatrix(a);
+
             cout << "/---------------------------------------------------------------/\n" << endl;
         }
         else {
