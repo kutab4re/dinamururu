@@ -5,46 +5,48 @@
 #include <climits>
 #include <string>
 #include <iomanip>
+#include <windows.h>
 
 using namespace std;
 
 
+string findMaxCommonSubsequence(const string& word1, const string& word2) {
+    int m = word1.length();
+    int n = word2.length();
 
+    vector<vector<int>> A(m + 1, vector<int>(n + 1, 0));
 
-string findMaxCommonSubsequence(const string& str1, const string& str2) {
-    int m = str1.length();
-    int n = str2.length();
-
-    vector<vector<int>> dp(m + 1, vector<int>(n + 1, 0));
-
-    for (int i = 1; i <= m; ++i) {
-        for (int j = 1; j <= n; ++j) {
-            if (str1[i - 1] == str2[j - 1]) {
-                dp[i][j] = dp[i - 1][j - 1] + 1;
+    for (int i = 1; i <= m; i++) {
+        for (int j = 1; j <= n; j++) {
+            if (word1[i - 1] == word2[j - 1]) {
+                A[i][j] = A[i - 1][j - 1] + 1;
             }
             else {
-                dp[i][j] = max(dp[i - 1][j], dp[i][j - 1]);
+                A[i][j] = max(A[i - 1][j], A[i][j - 1]);
             }
         }
     }
 
-    int i = m;
-    int j = n;
-    string result;
+    int lon = A[m][n];
+    string result(lon, ' ');
 
+    int i = m, j = n;
     while (i > 0 && j > 0) {
-        if (str1[i - 1] == str2[j - 1]) {
-            result = str1[i - 1] + result;
-            --i;
-            --j;
+        if (word1[i - 1] == word2[j - 1]) {
+            result[--lon] = word1[i - 1];
+            i--;
+            j--;
         }
-        else if (dp[i - 1][j] > dp[i][j - 1]) {
-            --i;
+        else if (A[i - 1][j] > A[i][j - 1]) {
+            i--;
         }
         else {
-            --j;
+            j--;
         }
     }
+
+    cout << "Длина максимальной подпоследовательности: " << A[m][n] << endl;
+    cout << "Максимальная подпоследовательность: " << result << endl;
 
     return result;
 }
@@ -179,7 +181,8 @@ void Solve(int n) {
 
 int main()
 {
-    setlocale(LC_ALL, "ru");
+    SetConsoleCP(1251);
+    SetConsoleOutputCP(1251);
 
     while (true) {
         cout << "Алгоритмы динамического программирования : \n1.Алгоритм оптимального пути в треугольнике(на максимум)\n2.Алгоритм Поиск оптимального пути в четырехугольнике(на минимум)" << endl;
@@ -237,19 +240,15 @@ int main()
         }
         else if (m == 4) {
             cout << "Алгоритм Поиск максимально совпадающей подцепочки\n";
+            string word1, word2;
 
-            string str1, str2;
+            cout << "Введите первое слово: ";
+            cin >> word1;
 
-            cout << "Введите первую строку: ";
-            cin >> str1;
+            cout << "Введите второе слово: ";
+            cin >> word2;
 
-            cout << "Введите вторую строку: ";
-            cin >> str2;
-
-            string result = findMaxCommonSubsequence(str1, str2);
-
-            cout << "Максимально совпадающая подцепочка: " << result << endl;
-
+            findMaxCommonSubsequence(word1, word2);
             cout << "/---------------------------------------------------------------/\n" << endl;
         }
         else if (m == 5) {
