@@ -6,11 +6,44 @@
 #include <string>
 #include <iomanip>
 #include <windows.h>
+#include <cmath>
 
 using namespace std;
 
+// function to calculate the minimum path in a quadrilateral
+int min_path_sum(vector<vector<int>>& grid) {
+    int m = grid.size();
+    int n = grid[0].size();
 
-string findMaxCommonSubsequence(const string& word1, const string& word2) {
+    vector<vector<int>> dp(m, vector<int>(n, 0));
+
+    dp[0][0] = grid[0][0];
+    for (int j = 1; j < n; ++j) {
+        dp[0][j] = grid[0][j] + dp[0][j - 1];
+    }
+    for (int i = 1; i < m; ++i) {
+        dp[i][0] = grid[i][0] + dp[i - 1][0];
+    }
+
+    for (int i = 1; i < m; ++i) {
+        for (int j = 1; j < n; ++j) {
+            dp[i][j] = grid[i][j] + min(dp[i - 1][j], dp[i][j - 1]);
+        }
+    }
+
+    cout << "Матрица минимальных сумм путей:\n";
+    for (int i = 0; i < m; ++i) {
+        for (int j = 0; j < n; ++j) {
+            cout << dp[i][j] << "\t";
+        }
+        cout << endl;
+    }
+
+    return dp[m - 1][n - 1];
+}
+
+// function for Finding the maximum matching substring
+void findMaxCommonSubsequence(const string& word1, const string& word2) {
     int m = word1.length();
     int n = word2.length();
 
@@ -18,7 +51,7 @@ string findMaxCommonSubsequence(const string& word1, const string& word2) {
 
     for (int i = 1; i <= m; i++) {
         for (int j = 1; j <= n; j++) {
-            if (word1[i - 1] == word2[j - 1]) {
+            if (tolower(word1[i - 1]) == tolower(word2[j - 1])) {
                 A[i][j] = A[i - 1][j - 1] + 1;
             }
             else {
@@ -32,7 +65,7 @@ string findMaxCommonSubsequence(const string& word1, const string& word2) {
 
     int i = m, j = n;
     while (i > 0 && j > 0) {
-        if (word1[i - 1] == word2[j - 1]) {
+        if (tolower(word1[i - 1]) == tolower(word2[j - 1])) {
             result[--lon] = word1[i - 1];
             i--;
             j--;
@@ -45,13 +78,13 @@ string findMaxCommonSubsequence(const string& word1, const string& word2) {
         }
     }
 
+    reverse(result.begin(), result.end());
+
     cout << "Длина максимальной подпоследовательности: " << A[m][n] << endl;
     cout << "Максимальная подпоследовательность: " << result << endl;
-
-    return result;
 }
 
-
+// helper function for outputting a matrix from a function findMaxCommonSubsequence
 void printMatrix(const vector<vector<int>>& matrix) {
     for (size_t i = 1; i < matrix.size(); ++i) {
         for (const int& element : matrix[i]) {
@@ -64,8 +97,8 @@ void printMatrix(const vector<vector<int>>& matrix) {
 
 const int MaxN = 1000; // for Solve
 int Op[MaxN]; // for Solve
-vector<pair<int, int>> oper; // for Solve
 
+//helper function for outputting matrix function bag
 
 void printIncludedItems(const vector<vector<int>>& a, const vector<vector<int>>& w, int i, int j) {
     if (i > 0 && j > 0) {
@@ -79,6 +112,8 @@ void printIncludedItems(const vector<vector<int>>& a, const vector<vector<int>>&
     }
 }
 
+
+// function for solving the knapsack problem
 int bag(vector<vector<int>>& a, const vector<vector<int>>& w, int k, int w_max) {
     for (int i = 1; i <= k; i++) {
         for (int j = 1; j <= w_max; j++) {
@@ -104,6 +139,8 @@ int bag(vector<vector<int>>& a, const vector<vector<int>>& w, int k, int w_max) 
     return 0;
 }
 
+
+// function for calculating the optimal path in a triangle to the maximum
 int optimal_path_triangle(const vector<vector<int>>& a, int n) {
     vector<vector<int>> copy(n, vector<int>(n + 1, 0));
 
@@ -152,38 +189,63 @@ int optimal_path_triangle(const vector<vector<int>>& a, int n) {
     return result;
 }
 
+
+// helper function for helper function for outputting operations from Solve
+struct Step {
+    int op_count; 
+    vector<string> operations; 
+};
+
+
+// function for finding the optimal sequence of operations when raising a number to a power
 void Solve(int n) {
-    Op[1] = 0;
+    vector<Step> steps(n + 1);
+
+    steps[1].op_count = 0;
 
     for (int i = 2; i <= n; ++i) {
-        Op[i] = Op[i - 1] + 1;
-        oper.push_back({ i - 1, i });
-        cout << "/----------------------------------------------------------------------------/\n";
+        steps[i].op_count = steps[i - 1].op_count + 1;
+        steps[i].operations = steps[i - 1].operations;
+        steps[i].operations.push_back("k^" + to_string(i));
+
         for (int j = 2; j <= i - 1; ++j) {
-            int current_op = Op[j] + Op[i - j] + 1;
-            if (current_op < Op[i]) {
-                Op[i] = current_op;
-                oper.push_back({ j, i - j });
-                cout << "/------------------------------------------------------------/\n";
+            int current_op = steps[j].op_count + steps[i - j].op_count + 1;
+            if (current_op < steps[i].op_count) {
+                steps[i].op_count = current_op;
+                steps[i].operations = steps[j].operations;
+                for (const auto& op : steps[i - j].operations) {
+                    steps[i].operations.push_back(op);
+                }
+                steps[i].operations.push_back("Умножить результат шага " + to_string(j) + " на резульат " + to_string(i - j));
             }
 
             if (i % j == 0) {
-                current_op = Op[i / j] + j - 1;
-                if (current_op < Op[i]) {
-                    Op[i] = current_op;
-                    oper.push_back({ i / j, j - 1 });
-                    cout << "/-----------------------------------------------------------------/\n";
+                current_op = steps[i / j].op_count + j - 1;
+                if (current_op < steps[i].op_count) {
+                    steps[i].op_count = current_op;
+                    steps[i].operations = steps[i / j].operations;
+                    for (int k = 1; k < j; ++k) {
+                        steps[i].operations.push_back("Умножить результат шага " + to_string(i / j) + " на себя");
+                    }
                 }
             }
         }
     }
+
+    cout << "Operations for " << n << ": " << endl;
+    for (const auto& op : steps[n].operations) {
+        cout << op << endl;
+    }
 }
+
 
 int main()
 {
+    // setting the console code page
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
 
+    // program menu
     while (true) {
         cout << "Алгоритмы динамического программирования : \n1.Алгоритм оптимального пути в треугольнике(на максимум)\n2.Алгоритм Поиск оптимального пути в четырехугольнике(на минимум)" << endl;
         cout << "3.Алгоритм Поиск оптимальной последовательности операций при возведении числа в степень\n4.Алгоритм Поиск максимально совпадающей подцепочки\n5.Алгоритм Решение задачи о рюкзаке" << endl;
@@ -194,11 +256,11 @@ int main()
         cout << "Введите номер алгоритма в соответствии с нумерацией в списке : "; cin >> m; cout << "\n";
         cout << "/---------------------------------------------------------------/\n" << endl;
 
-        if (m == 6) {
+        if (m == 6) { // exit the program
             cout << "Выход из программы.\n";
             break;
         }
-        if (m == 1) {
+        if (m == 1) { // print optimal_path_triangle
             cout << "Алгоритм оптимального пути в треугольнике(на максимум)\n";
             cout << "Введите количество строк в треугольнике: ";
             int n;
@@ -216,12 +278,48 @@ int main()
             optimal_path_triangle(a, n);
             cout << "/---------------------------------------------------------------/\n" << endl;
         }
-        else if (m == 2) {
+        else if (m == 2) { // print min_path_sum
             cout << "Алгоритм Поиск оптимального пути в четырехугольнике(на минимум)\n";
-            
+            int n;
+            int k;
+            cout << "Ввведите размерность квадрата nxk " << endl;
+            cout << "Введите n: "; cin >> n; 
+            cout << "Введите k: "; cin >> k;
+            vector<vector<int>> b(n * 2 - 1, vector<int>(k, k + 2));
+
+            for (int i = 0; i < n * 2 - 1; i++) {
+                for (int j = 0; j < k; j++) {
+                    b[i][j] = 0;
+                }
+            }
+            for (int i = 0; i < n * 2 - 1; i++) {
+                if (i % 2 != 0) {
+                    for (int j = 0; j < k; j++) {
+                        cout << "Введите дорогу " << i + 1 << "-" << j + 1 << ": ";
+                        cin >> b[i][j];
+                    }
+                }
+                else {
+                    for (int j = 0; j < k - 1; j++) {
+                        cout << "Введите дорогу " << i + 1 << "-" << j + 1 << ": ";
+                        cin >> b[i][j];
+                    }
+                }
+            }
+            for (int i = 0; i < n * 2 - 1; i++) {
+                cout << endl;
+                for (int j = 0; j < k; j++) {
+                    cout << " " << b[i][j];
+                }
+            }
+            cout << endl;
+            int result = min_path_sum(b);
+
+            cout << "Минимальная сумма пути: " << result << endl;
+
             cout << "/---------------------------------------------------------------/\n" << endl;
         }
-        else if (m == 3) {
+        else if (m == 3) { // print Solve
             cout << "Алгоритм Поиск оптимальной последовательности операций при возведении числа в степень\n";
             int n;
             cout << "Введи степень: ";
@@ -229,16 +327,10 @@ int main()
 
             Solve(n);
 
-            cout << "Минимальное количество операций для возведения в " << n << " степень: " << Op[n] << endl;
-            cout << "Операции, примененные для возведения в " << n << " степень:" << endl;
-
-            for (const auto& operation : oper) {
-                cout << operation.first << " + " << operation.second << endl;
-            }
-            
+  
             cout << "/---------------------------------------------------------------/\n" << endl;
         }
-        else if (m == 4) {
+        else if (m == 4) { //print findMaxCommonSubsequence
             cout << "Алгоритм Поиск максимально совпадающей подцепочки\n";
             string word1, word2;
 
@@ -251,7 +343,7 @@ int main()
             findMaxCommonSubsequence(word1, word2);
             cout << "/---------------------------------------------------------------/\n" << endl;
         }
-        else if (m == 5) {
+        else if (m == 5) { //print bag
             cout << "Алгоритм: Решение задачи о рюкзаке\n";
             int k;
             int w_max;
@@ -293,7 +385,7 @@ int main()
 
             cout << "/---------------------------------------------------------------/\n" << endl;
         }
-        else {
+        else {  // exception
             cout << "/---------------------------------------------------------------/\n" << endl;
             cout << "\nНеверный выбор. Попробуйте еще раз.\n";
             cout << "/---------------------------------------------------------------/\n" << endl;
